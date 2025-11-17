@@ -1,0 +1,161 @@
+import java.util.*;
+import java.time.LocalDate;
+
+// --------------------------- Main Class --------------------------//
+public class FinanceTracker {
+public static void main(String[] args) {
+Scanner sc = new Scanner(System.in);
+Account account = new Account();
+ReportGenerator report = new ReportGenerator();
+
+while (true) {
+System.out.println("\n--- Personal Finance Tracker ---");
+System.out.println("1. Add Income");
+System.out.println("2. Add Expense");
+System.out.println("3. View Report");
+System.out.println("4. Exit");
+System.out.print("Enter your choice: ");
+int choice = sc.nextInt();
+sc.nextLine(); // clear newline
+
+switch (choice) {
+case 1:
+System.out.print("Enter income amount: ");
+double incAmt = sc.nextDouble();
+sc.nextLine();
+System.out.print("Enter category: ");
+String incCat = sc.nextLine();
+System.out.print("Enter date (YYYY-MM-DD): ");
+String incDate = sc.nextLine();
+Income income = new Income(incAmt, incCat, incDate);
+income.adds(account);
+account.addTransaction(income);
+System.out.println("Income added successfully!");
+break;
+
+case 2:
+System.out.print("Enter expense amount: ");
+double expAmt = sc.nextDouble();
+sc.nextLine();
+System.out.print("Enter category: ");
+String expCat = sc.nextLine();
+System.out.print("Enter date (YYYY-MM-DD): ");
+String expDate = sc.nextLine();
+Expense expense = new Expense(expAmt, expCat, expDate);
+expense.deducts(account);
+account.addTransaction(expense);
+System.out.println("Expense added successfully!");
+break;
+
+case 3:
+report.generateReport(account);
+break;
+
+case 4:
+System.out.println("Exiting... Thank you!");
+sc.close();
+System.exit(0);
+
+default:
+System.out.println("Invalid choice, please try again.");
+}
+}
+}
+}
+
+// --------------------------- Base Class --------------------------//
+abstract class Transaction {
+protected double amount;
+protected String category;
+protected LocalDate date;
+
+public Transaction(double amount, String category, String date) {
+this.amount = amount;
+this.category = category;
+this.date = LocalDate.parse(date);
+}
+
+public double getAmount() { return amount; }
+public String getCategory() { return category; }
+public LocalDate getDate() { return date; }
+
+public abstract void apply(Account account);
+}
+
+// --------------------------- Derived Class: Income ---------------//
+class Income extends Transaction {
+public Income(double amount, String category, String date) {
+super(amount, category, date);
+}
+
+@Override
+public void apply(Account account) {}
+
+public void adds(Account account) {
+account.updateBalance(amount);
+System.out.println("Rs." + amount + " added as income.");
+}
+}
+
+// --------------------------- Derived Class: Expense---------------//
+class Expense extends Transaction {
+public Expense(double amount, String category, String date) {
+super(amount, category, date);
+}
+
+@Override
+public void apply(Account account) {}
+
+public void deducts(Account account) {
+account.updateBalance(-amount);
+System.out.println( "Rs."+ amount + " deducted as expense.");
+}
+}
+
+// --------------------------- Account Class -----------------------//
+class Account {
+private double balance;
+private List<Transaction> transactions;
+
+public Account() {
+this.balance = 0.0;
+this.transactions = new ArrayList<>();
+}
+
+public void addTransaction(Transaction t) {
+transactions.add(t);
+}
+
+protected void updateBalance(double amount) {
+this.balance += amount;
+}
+
+public double getBalance() {
+return balance;
+}
+
+public List<Transaction> getTransactions() {
+return transactions;
+}
+}
+
+// ----------- Report Generator ---------------------------//
+class ReportGenerator {
+public void generateReport(Account account) {
+double totalIncome = 0, totalExpense = 0;
+
+for (Transaction t : account.getTransactions()) {
+if (t instanceof Income)
+totalIncome += t.getAmount();
+else if (t instanceof Expense)
+totalExpense += t.getAmount();
+}
+
+double net = account.getBalance();
+
+System.out.println("\n------ Financial Report ------");
+System.out.println("Total Income : Rs." + totalIncome);
+System.out.println("Total Expense: Rs." + totalExpense);
+System.out.println("Net Savings  : Rs." + net);
+System.out.println("------------------------------");
+}}
